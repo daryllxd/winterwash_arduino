@@ -13,8 +13,8 @@ byte coinValue = 0;      // number of pulses required to dispence each coin type
 byte onePeso = 0;       // count 5x 2 pences to dispence 10p
 
 //***********************************************************************************************
-byte pulseThreshold =  500;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
-byte TIME_DELAY_BEFORE_CHECKING_COINS_INSERTED = 7000;
+byte DELAY_BEFORE_COUNTING_PULSES_IN_MILLISECONDS =  1;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
+int DELAY_BEFORE_EVALUATING_COIN_COUNT_IN_MILLISECONDS = 500;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
 //***********************************************************************************************
 
 //************Pins Used *******************
@@ -41,14 +41,16 @@ void setup()
 void loop()
 {  
   //CHECK NOW TO SEE WHICH COIN IS INSERTED 
-  if (coinPulseCount >0 && millis()- pulseTime > pulseThreshold)    //if there is a coin count & the time between now and the last pulse is greater than 1/4 of a second - THE END OF BANK OF PULSES
+  if (coinPulseCount >0 && millis()- pulseTime > DELAY_BEFORE_COUNTING_PULSES_IN_MILLISECONDS)    //if there is a coin count & the time between now and the last pulse is greater than 1/4 of a second - THE END OF BANK OF PULSES
   {
     secondPulseTime = millis();
     newCoinInserted += coinPulseCount;  //new variable to free up coinPulseCount on the interrupt.
     coinPulseCount = 0;                // clear pulse count ready for a new pulse on the interrupt.
   }
 
-  if (millis() - secondPulseTime > 1000){
+  printMessageWhileWaitingForCoins();
+
+  if (millis() - secondPulseTime > DELAY_BEFORE_EVALUATING_COIN_COUNT_IN_MILLISECONDS){
     switch (newCoinInserted) {
 
     case 4:    
@@ -61,7 +63,7 @@ void loop()
     case 10:
       Serial.println("P50 inserted");
       newCoinInserted = 0;
-      coinValue = 20;  
+      coinValue = 10;  
       dispence(); 
       break;
 
@@ -110,9 +112,10 @@ void dispence()
 
 }
 
-
-
-
-
-
-
+void printMessageWhileWaitingForCoins(){
+  int DELAY_CONTROLLER = 500;
+  
+  if (newCoinInserted > 0 && (millis() % DELAY_CONTROLLER == 0)){
+    Serial.println("Checking, checking, checking...");
+  }
+}
