@@ -11,10 +11,11 @@ volatile unsigned long secondPulseTime;  //this stores the time of the last puls
 byte newCoinInserted; // a place to put our last coin pulse count
 byte coinValue = 0;      // number of pulses required to dispence each coin type.
 byte onePeso = 0;       // count 5x 2 pences to dispence 10p
+int amountInsertedSinceLastReset = 0;
 
 //***********************************************************************************************
-byte DELAY_BEFORE_COUNTING_PULSES_IN_MILLISECONDS =  1;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
-int DELAY_BEFORE_EVALUATING_COIN_COUNT_IN_MILLISECONDS = 500;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
+byte DELAY_BEFORE_COUNTING_PULSES_IN_MILLISECONDS =  1; //EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
+int DELAY_BEFORE_EVALUATING_COIN_COUNT_IN_MILLISECONDS = 500; //EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
 //***********************************************************************************************
 
 //************Pins Used *******************
@@ -54,27 +55,36 @@ void loop()
     switch (newCoinInserted) {
 
     case 4:    
+      amountInsertedSinceLastReset += 20;
       Serial.println("P20 inserted");
+      printAmountInsertedSinceLastReset();
       newCoinInserted = 0;
       coinValue = 4;  
       dispence(); 
       break;
 
     case 10:
+      amountInsertedSinceLastReset += 50;
       Serial.println("P50 inserted");
+      printAmountInsertedSinceLastReset();
       newCoinInserted = 0;
       coinValue = 10;  
       dispence(); 
       break;
 
     case 20:    
+      amountInsertedSinceLastReset += 100;
       Serial.println("P100 inserted");
+      printAmountInsertedSinceLastReset();
       newCoinInserted = 0;
       coinValue = 20;  
       dispence(); 
       break;
 
     }
+
+
+
   }
 }
 
@@ -113,9 +123,23 @@ void dispence()
 }
 
 void printMessageWhileWaitingForCoins(){
-  int DELAY_CONTROLLER = 500;
-  
-  if (newCoinInserted > 0 && (millis() % DELAY_CONTROLLER == 0)){
+  int INTERVAL_IN_MILLISECONDS = 500;
+
+  if (newCoinInserted > 0 && (millis() % INTERVAL_IN_MILLISECONDS == 0)){
     Serial.println("Checking, checking, checking...");
   }
 }
+
+void printAmountInsertedSinceLastReset(){
+  String stringOne =  String(amountInsertedSinceLastReset);      
+  Serial.print("P");
+  Serial.print(stringOne);
+  Serial.println(" total money!!!");
+}
+
+
+
+
+
+
+
