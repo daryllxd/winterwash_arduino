@@ -6,14 +6,13 @@
 //**************Variables ****************
 volatile byte coinPulseCount=0;    // a counter to see how many times the pin has changed - which coin inserted
 volatile byte hopperPulseCount = 0;  // a counter to she how many coins have been ejected 
-volatile byte arg = 0;
 volatile unsigned long pulseTime;  //this stores the time of the last pulse.
 byte newCoinInserted; // a place to put our last coin pulse count
 byte coinValue = 0;      // number of pulses required to dispence each coin type.
 byte onePeso = 0;       // count 5x 2 pences to dispence 10p
 
 //***********************************************************************************************
-byte pulseThreshold = 50;  //EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
+byte pulseThreshold =  500;//EDIT THIS VALUE TO CHANGE DELAY BETWEEN DETECTING BANK OF PULSES
 //***********************************************************************************************
 
 //************Pins Used *******************
@@ -44,45 +43,50 @@ void loop()
   //CHECK NOW TO SEE WHICH COIN IS INSERTED 
   if (coinPulseCount >0 && millis()- pulseTime > pulseThreshold)    //if there is a coin count & the time between now and the last pulse is greater than 1/4 of a second - THE END OF BANK OF PULSES
   {
-    newCoinInserted = coinPulseCount;  //new variable to free up coinPulseCount on the interrupt.
-    Serial.print("newCoinInserted pulses ");
-    Serial.println(newCoinInserted);         // print the pulses of the new coin inserted.
-    
-    Serial.print("arg: ");
-    Serial.println(arg);    
-//    coinPulseCount = 0;                // clear pulse count ready for a new pulse on the interrupt.
-   
-   switch (newCoinInserted) {
-     
-//     case 4:    
-//        Serial.println("P20 inserted");
-//        
-//        coinValue = 4;  
-//        dispence(); 
-//        
-//        break;
-      
-      case 20:    
-        Serial.println("P100 inserted");
-        newCoinInserted = 0;
-        coinValue = 20;  
-        dispence(); 
-        coinPulseCount = 0;
-        break;
-     
-  }
-   
-  }
-  
-  //Proccess the coin inserted
-  
+    newCoinInserted += coinPulseCount;  //new variable to free up coinPulseCount on the interrupt.
+    //    Serial.print("newCoinInserted pulses ");
+    //    Serial.println(newCoinInserted);         // print the pulses of the new coin inserted.
 
-   
+    coinPulseCount = 0;                // clear pulse count ready for a new pulse on the interrupt.
+
+
+
+  }
+
+  if (millis() - pulseTime > 7000){
+    switch (newCoinInserted) {
+
+    case 4:    
+      Serial.println("P20 inserted");
+      newCoinInserted = 0;
+      coinValue = 4;  
+      dispence(); 
+      break;
+
+    case 10:
+      Serial.println("P50 inserted");
+      newCoinInserted = 0;
+      coinValue = 20;  
+      dispence(); 
+      break;
+
+    case 20:    
+      Serial.println("P100 inserted");
+      newCoinInserted = 0;
+      coinValue = 20;  
+      dispence(); 
+      break;
+
+    }
+  }
+
+
+
+
 }
 //*****INTERUPT detecting pulses from the coin acceptor
 void coinacceptor()      //Function called when coin enters coin acceptor
 {
-  arg++;
   coinPulseCount++;
   pulseTime = millis();   //store current time in pulseTime
 }
@@ -103,13 +107,19 @@ void dispence()
   {
     //do nothing and wait with the relay on dispencing coins until it hits the "coinValue"
   }
-  
+
   delay(50);    //wait to ensure the coin has enough momentum to leave hopper but not long enough for another coins to dispence!
   digitalWrite(relayPin, LOW);   //turn off relay - active LOW.  
 
-//**************************************************************************************  
+  //**************************************************************************************  
   delay(180);
   coinPulseCount = 0;   // ERROR IN SPIKES - hopper pulsing effects coin acceptor pulse line!
   //************************************************************************************** 
-  
+
 }
+
+
+
+
+
+
